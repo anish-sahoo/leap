@@ -1,34 +1,43 @@
 # Changelog
 
-All notable changes to Leap are documented here. This project follows
-[Semantic Versioning](https://semver.org) (`x.y.z`) and
-[Conventional Commits](https://www.conventionalcommits.org).
+All notable changes to Leap are documented here.
 
-## Unreleased
+## 1.0.0 — 2026-07-14
+
+## 1.0.0 — 2026-07-14
+
+## 1.0.0 — 2026-07-14
+
+## 1.0.0 — 2026-07-14
+
+
+### Bug Fixes
+
+- Run commands in the existing terminal instance
+- Don't open a second terminal window on cold launch
+
+### Documentation
+
+- Refresh README, add CONTRIBUTING/AGENTS, move dev docs out of docs/
 
 ### Features
-- Menu-bar app that binds global hotkeys to apps/scripts.
-- Launch / focus / cycle-windows behavior via the Accessibility API.
-- `command` actions run in a new terminal window (so TUIs like `btop` work),
-  with a configurable terminal (`auto`/Terminal/iTerm2/Ghostty/…/`custom`).
-- Cheat-sheet overlay: hold the trigger modifier to see all bound hotkeys in a
-  floating, non-activating panel (debounced so a quick `⌥1` doesn't flash it).
-  Shows app icons, a Settings shortcut (`⌥,`), and is configurable via
-  `[cheatsheet]` (trigger, position, vertical/horizontal orientation, delay).
-- Colored, human-readable stdout logs (ANSI, TTY-aware, honors `NO_COLOR`).
-- Settings window with three tabs: a form editor (cheat-sheet prefs + a slots
-  table), a raw-TOML editor with live syntax highlighting, and a live Logs view.
-  Switching between form and TOML syncs changes both ways. The Logs view is
-  colored by level.
-- Add/edit slots via a dialog (name, hotkey, type, target + Browse…) instead of
-  editing a blank table row; double-click a row to edit it.
-- Config validation: syntax, unknown keys, invalid/duplicate hotkeys, action
-  rules, and cheat-sheet enum values are reported (in the editor and on save).
-- TOML config at `~/.config/leap/config.toml`, with an in-app editor and
-  import/export.
-- Log console window (swift-log facade).
-- App icon: the layered Liquid Glass icon (`Resources/icon.icon`, from Icon
-  Composer) is compiled to `Assets.car` at bundle time via `actool`, with a flat
-  `AppIcon.icns` fallback for pre-macOS-26. `mise run icon` regenerates the
-  `.icns` and the layered Icon Composer sources.
-- Start-at-login (`SMAppService`) and `.app` bundling.
+
+- Initial Leap menu-bar hotkey launcher
+- Add hold-Option overlay listing bound hotkeys
+- Add icons, orientation/position config, and settings shortcut
+- Make entries clickable and right-align shortcuts
+- Distinct placeholder icons for script and command actions
+- Run script files by path
+- Two-tab settings window with TOML validation
+- Slot editor dialog and a Logs tab
+- Run commands in a terminal, with configurable/custom terminal
+- Color the log views by level and subsystem
+- Add app icon (⌥ glyph) and Icon Composer layer sources
+- Bolder blue→magenta diagonal gradient
+- Cobalt blue with a center-weighted gradient blend
+- Ship Liquid Glass app icon compiled from icon.icon
+
+### Ci
+
+- Make releases an admin-only, bump-driven workflow
+- Drop the local release trigger; GitHub Actions only
