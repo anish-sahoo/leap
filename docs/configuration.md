@@ -37,11 +37,15 @@ target = "/Applications/Google Chrome.app"
 
 ### Action
 
-| `type`      | Fields used                    | Behavior                                  |
-|-------------|--------------------------------|-------------------------------------------|
-| `"app"`     | `target` (bundle path)         | Launch / focus / cycle windows.           |
-| `"command"` | `target` (shell command)       | Run a single shell command.               |
-| `"script"`  | `body`, `interpreter` (opt.)   | Run a script (`interpreter` defaults zsh).|
+| `type`      | Fields used                          | Behavior                                  |
+|-------------|--------------------------------------|-------------------------------------------|
+| `"app"`     | `target` (bundle path)               | Launch / focus / cycle windows.           |
+| `"command"` | `target` (shell command)             | Run a single shell command.               |
+| `"script"`  | `body`, `interpreter` (opt.), `name` | Run a script (`interpreter` defaults zsh).|
+
+`action.name` gives command/script actions a display name for the cheat sheet.
+The cheat-sheet label for a slot is `label` → `action.name` → app name → `id`,
+so `label` on the slot is optional.
 
 ```toml
 [[slots]]
@@ -54,6 +58,23 @@ type = "script"
 interpreter = "bash"
 body = "open -a Ghostty; sleep 1; osascript -e 'tell app \"System Events\" to keystroke \"btop\\n\"'"
 ```
+
+## Cheat sheet
+
+Hold the trigger modifier (Option by default) to show the overlay listing every
+bound hotkey. Configure it with an optional `[cheatsheet]` table:
+
+```toml
+[cheatsheet]
+trigger = "alt"          # alt (default) | cmd | ctrl | shift
+position = "center"      # center (default) | top | bottom | left | right
+                         #   | top-left | top-right | bottom-left | bottom-right
+orientation = "vertical" # vertical (default) | horizontal
+delayMs = 150            # debounce before showing (default 150)
+```
+
+The overlay always includes a Settings shortcut (`⌥,`) that opens the config
+editor.
 
 ## Notes
 

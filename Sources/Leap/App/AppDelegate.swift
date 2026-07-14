@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import UniformTypeIdentifiers
 
 /// Menu-bar-resident app: loads config, registers global hotkeys, and runs the
@@ -31,6 +32,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         reload()
+
+        // Dev preview: show the cheat sheet on launch (no Option needed).
+        if ProcessInfo.processInfo.environment["LEAP_DEBUG_SHOW_CHEATSHEET"] == "1" {
+            cheatsheet.previewNow()
+        }
     }
 
     // MARK: - Menu bar
@@ -99,7 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 Log.app.warning("could not parse hotkey '\(slot.hotkey)' for slot '\(slot.id)'")
                 continue
             }
-            let label = slot.label
+            let label = slot.displayName
             let combo = slot.hotkey
             let action = slot.action
             let ok = HotkeyManager.shared.register(hotkey) { [weak self] in
@@ -109,8 +115,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             Log.app.info("bound \(combo) -> \(label) \(ok ? "✓" : "✗ (in use?)")")
         }
+
+        registerSettingsHotkey()
+        cheatsheet.configure(config.cheatsheet)
         cheatsheet.update(slots: config.slots)
         Log.app.info("ready — \(config.slots.count) slots")
+    }
+
+    /// Built-in `⌥,` shortcut (shown in the cheat sheet) that opens settings.
+    private func registerSettingsHotkey() {
+        let hotkey = Hotkey(keyCode: UInt32(kVK_ANSI_Comma), modifiers: UInt32(optionKey))
+        HotkeyManager.shared.register(hotkey) { [weak self] in
+            self?.cheatsheet.dismiss()
+            self?.editConfig()
+        }
     }
 
     @objc private func openConfigFolder() {
