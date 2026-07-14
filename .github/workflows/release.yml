@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags + full history for git describe / changelog
+
+      - name: Install mise + tools
+        uses: jdx/mise-action@v2
+
+      - name: Verify (format + lint + test)
+        run: |
+          mise run check
+          swift test
+
+      - name: Bundle Leap.app
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: MARKETING_VERSION="${REF_NAME#v}" mise run bundle
+
+      - name: Package artifacts (zip + dmg + checksums)
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          cd dist
+          ZIP="Leap-${REF_NAME}.zip"
+          DMG="Leap-${REF_NAME}.dmg"
+
+          # Zip: preserves the bundle + its signature (ditto is the safe tool).
+          ditto -c -k --sequesterRsrc --keepParent Leap.app "$ZIP"
+
+          # DMG: drag-to-Applications convenience image.
+          STAGE="$(mktemp -d)"
+          cp -R Leap.app "$STAGE/"
+          ln -s /Applications "$STAGE/Applications"
+          hdiutil create -volname "Leap" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+
+          shasum -a 256 "$ZIP" "$DMG" > "checksums-${REF_NAME}.txt"
+          ls -la
+
+      - name: Generate release notes
+        run: git-cliff --latest --strip header --output RELEASE_NOTES.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          gh release create "$REF_NAME" \
+            "dist/Leap-${REF_NAME}.zip" \
+            "dist/Leap-${REF_NAME}.dmg" \
+            "dist/checksums-${REF_NAME}.txt" \
+            --title "$REF_NAME" \
+            --notes-file RELEASE_NOTES.md

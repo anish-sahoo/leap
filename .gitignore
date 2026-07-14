@@ -1,0 +1,14 @@
+# Swift / SwiftPM
+.build/
+.swiftpm/
+# Package.resolved is committed for reproducible builds (this is an app).
+
+# App bundle output
+dist/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+*.xcuserstate

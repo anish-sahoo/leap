@@ -1,0 +1,24 @@
+# SwiftLint config — https://github.com/realm/SwiftLint
+included:
+  - Sources
+excluded:
+  - .build
+  - dist
+
+disabled_rules:
+  - todo                    # WIP scaffold has intentional TODOs
+  - trailing_comma          # SwiftFormat keeps trailing commas; defer to it
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  min_length:
+    warning: 1              # allow short locals like `i`, `a`, `b`, `id`, `tv`
+    error: 1
+
+type_name:
+  min_length: 3

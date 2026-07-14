@@ -1,0 +1,77 @@
+# mise-en-place config — https://mise.jdx.dev/
+# Toolchain + task runner for Leap.
+#
+# Swift itself ships with Xcode (not managed by mise). mise manages the dev
+# tools (formatter/linter) and provides unified `mise run <task>` entry points.
+
+[tools]
+swiftlint = "latest"
+swiftformat = "latest"
+git-cliff = "latest"
+
+[env]
+# Project-scoped environment goes here.
+
+# --- Build / run ---
+
+[tasks.setup]
+description = "Install dev tools + git hooks (run once after cloning)"
+run = [
+    "mise install",
+    "git config core.hooksPath .githooks",
+    "chmod +x .githooks/* Scripts/*.sh",
+]
+
+[tasks.build]
+description = "Debug build"
+run = "swift build"
+
+[tasks.run]
+description = "Build and run (debug) in the terminal"
+run = "swift run"
+
+[tasks.build-release]
+description = "Optimized release build"
+run = "swift build -c release"
+
+[tasks.bundle]
+description = "Build Leap.app into ./dist"
+run = "bash Scripts/bundle.sh"
+
+[tasks.open]
+description = "Bundle then launch the .app"
+depends = ["bundle"]
+run = 'open "dist/Leap.app"'
+
+[tasks.test]
+description = "Run the test suite"
+run = "swift test"
+
+[tasks.changelog]
+description = "Regenerate CHANGELOG.md from conventional commits"
+run = "git-cliff --output CHANGELOG.md"
+
+[tasks.release]
+description = "Cut a SemVer release: mise run release -- X.Y.Z"
+run = "bash Scripts/release.sh"
+
+[tasks.clean]
+description = "Remove build + dist artifacts"
+run = "rm -rf .build dist"
+
+# --- Format / lint ---
+
+[tasks.format]
+description = "Auto-format Swift sources"
+run = "swiftformat Sources"
+
+[tasks.lint]
+description = "Lint Swift sources"
+run = "swiftlint lint --quiet Sources"
+
+[tasks.check]
+description = "CI-style check: verify formatting + strict lint (no writes)"
+run = [
+    "swiftformat --lint Sources",
+    "swiftlint lint --quiet --strict Sources",
+]
