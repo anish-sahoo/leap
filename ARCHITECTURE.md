@@ -7,12 +7,11 @@ and testable.
 ## Layers
 
 ```
-UI (AppKit)            App/, UI/            menu bar, console, config editor
+UI (AppKit)         App/, UI/       menu bar, cheat sheet, settings, logs
       │
-Domain (pure)          Core/                Config, ActionDispatcher, ActionRunner
+Domain (pure)       Core/           Config, validation, action dispatch
       │  protocols
-Platform (macOS)       Platform/            HotkeyManager (Carbon),
-                                            AXWindowController (Accessibility)
+Platform (macOS)    Platform/       hotkeys (Carbon), windows (Accessibility)
 ```
 
 - **Core** has no AppKit/Carbon imports. `ActionDispatcher` depends only on the
@@ -21,8 +20,8 @@ Platform (macOS)       Platform/            HotkeyManager (Carbon),
 - **Platform** holds the two privileged capabilities:
   - `HotkeyManager` — global hotkeys via Carbon `RegisterEventHotKey`.
   - `AXWindowController` — launch/focus/cycle via the Accessibility API.
-- **Logging** — a swift-log facade with two backends: stdout and the in-app
-  console (`LogStore` + `ConsoleLogHandler`).
+- **Logging** — a swift-log facade with two backends: a colored stdout handler
+  and the in-app log views (`LogStore` + `ConsoleLogHandler`).
 
 ## Source layout
 
@@ -30,11 +29,14 @@ Platform (macOS)       Platform/            HotkeyManager (Carbon),
 Sources/Leap/
 ├── main.swift
 ├── App/            AppDelegate, LoginItem, AppVersion
-├── UI/             Console/, ConfigEditor/
-├── Logging/        Logging (facade + handler), LogStore
+├── UI/
+│   ├── Cheatsheet/ overlay panel, view, hover button
+│   ├── Settings/   window (form + TOML + logs tabs), slot editor, TOML highlighter
+│   └── Logs/       LogTextView, ConsoleWindowController
+├── Logging/        Logging (facade + handlers), LogStore
 ├── Core/
-│   ├── Config/     Config model, ConfigStore (TOML)
-│   └── Actions/    ActionDispatcher, ActionRunner
+│   ├── Config/     Config model, ConfigStore, ConfigValidator (TOML)
+│   └── Actions/    ActionDispatcher, ActionRunner, TerminalLauncher
 └── Platform/
     ├── Hotkeys/    Hotkey (parser), HotkeyManager
     └── Windows/    WindowSwitching, AXWindowController, Accessibility
