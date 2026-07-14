@@ -1,7 +1,11 @@
 # Leap
 
-[![CI](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml/badge.svg)](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml)
-[![Tests](https://github.com/anish-sahoo/leap/actions/workflows/test.yml/badge.svg)](https://github.com/anish-sahoo/leap/actions/workflows/test.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/anish-sahoo/leap/ci.yml?branch=main&label=CI)](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/anish-sahoo/leap/test.yml?branch=main&label=tests)](https://github.com/anish-sahoo/leap/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/anish-sahoo/leap?color=blue)](https://github.com/anish-sahoo/leap/releases/latest)
+[![License](https://img.shields.io/github/license/anish-sahoo/leap)](LICENSE)
+![Platform](https://img.shields.io/badge/macOS-14%2B-black?logo=apple&logoColor=white)
+![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)
 
 A macOS menu-bar hotkey launcher. Bind global hotkeys to apps, shell commands,
 or scripts; launch / focus / cycle app windows; and see a cheat-sheet overlay of
