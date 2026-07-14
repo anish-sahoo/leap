@@ -1,8 +1,12 @@
 # Configuration
 
 Leap reads a TOML file at `~/.config/leap/config.toml`. It's created with a
-starter config on first launch. Edit it by hand, via **Edit Config…** in the
-menu (validates before saving), or share it with **Import/Export**.
+starter config on first launch. Edit it by hand, in **Settings…** (menu or
+`⌥,`), or share it with **Import/Export**.
+
+The Settings window has two tabs that stay in sync: a **form** editor and a
+**TOML** editor with syntax highlighting. Both validate — invalid TOML (syntax
+errors, unknown keys, bad hotkeys, etc.) is reported and never saved.
 
 ## Format
 

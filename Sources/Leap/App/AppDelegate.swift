@@ -9,7 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var config = Config.starter
     private var consoleController: ConsoleWindowController?
-    private var editorController: ConfigEditorWindowController?
+    private var settingsController: SettingsWindowController?
     private let dispatcher = ActionDispatcher(windows: AXWindowController())
     private let cheatsheet = CheatsheetController()
 
@@ -53,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: "Leap \(appVersion)", action: nil, keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Edit Config…", action: #selector(editConfig), keyEquivalent: "e")
+        menu.addItem(withTitle: "Settings…", action: #selector(editConfig), keyEquivalent: ",")
             .target = self
         menu.addItem(withTitle: "Reload Config", action: #selector(reload), keyEquivalent: "r")
             .target = self
@@ -141,13 +141,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func editConfig() {
-        if editorController == nil {
-            editorController = ConfigEditorWindowController()
-            editorController?.onSaved = { [weak self] in self?.reload() }
+        if settingsController == nil {
+            settingsController = SettingsWindowController()
+            settingsController?.onSaved = { [weak self] in self?.reload() }
         }
         NSApp.activate(ignoringOtherApps: true)
-        editorController?.showWindow(nil)
-        editorController?.window?.makeKeyAndOrderFront(nil)
+        settingsController?.showWindow(nil)
+        settingsController?.window?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func importConfig() {

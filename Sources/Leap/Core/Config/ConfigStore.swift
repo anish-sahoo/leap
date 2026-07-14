@@ -86,7 +86,11 @@ enum ConfigStore {
     // MARK: - Codec
 
     static func validate(_ text: String) throws -> Config {
-        try decode(text)
+        let problems = ConfigValidator.validate(text)
+        if !problems.isEmpty {
+            throw ValidationError(message: problems.joined(separator: "\n"))
+        }
+        return try decode(text)
     }
 
     private static func decode(_ text: String) throws -> Config {
@@ -95,6 +99,11 @@ enum ConfigStore {
         } catch {
             throw ValidationError(message: String(describing: error))
         }
+    }
+
+    /// Serialize a Config to TOML text (used by the settings form → TOML tab).
+    static func serialize(_ config: Config) throws -> String {
+        try encode(config)
     }
 
     private static func encode(_ config: Config) throws -> String {
