@@ -4,17 +4,15 @@ All notable changes to Leap are documented here.
 
 ## 1.0.0 — 2026-07-14
 
-## 1.0.0 — 2026-07-14
-
-## 1.0.0 — 2026-07-14
-
-## 1.0.0 — 2026-07-14
-
-
 ### Bug Fixes
 
 - Run commands in the existing terminal instance
 - Don't open a second terminal window on cold launch
+
+### CI
+
+- Make releases an admin-only, bump-driven workflow
+- Drop the local release trigger; GitHub Actions only
 
 ### Documentation
 
@@ -36,8 +34,3 @@ All notable changes to Leap are documented here.
 - Bolder blue→magenta diagonal gradient
 - Cobalt blue with a center-weighted gradient blend
 - Ship Liquid Glass app icon compiled from icon.icon
-
-### Ci
-
-- Make releases an admin-only, bump-driven workflow
-- Drop the local release trigger; GitHub Actions only

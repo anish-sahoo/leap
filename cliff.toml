@@ -2,11 +2,9 @@
 # Generates CHANGELOG.md from Conventional Commits.
 
 [changelog]
-header = "# Changelog\n\nAll notable changes to Leap are documented here.\n"
+header = "# Changelog\n\nAll notable changes to Leap are documented here.\n\n"
 body = """
-{% for group, commits in commits | group_by(attribute="group") %}
-## {% if version %}{{ version | trim_start_matches(pat="v") }}{% else %}Unreleased{% endif %}{% if version %} — {{ timestamp | date(format="%Y-%m-%d") }}{% endif %}
-{% endfor %}
+{% if version %}## {{ version | trim_start_matches(pat="v") }} — {{ timestamp | date(format="%Y-%m-%d") }}{% else %}## Unreleased{% endif %}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -25,6 +23,9 @@ commit_parsers = [
     { message = "^refactor", group = "Refactor" },
     { message = "^doc", group = "Documentation" },
     { message = "^test", group = "Tests" },
+    { message = "^ci", group = "CI" },
+    { message = "^build", group = "Build" },
+    { message = "^style", group = "Styling" },
     { message = "^chore\\(release\\)", skip = true },
     { message = "^chore", group = "Chores" },
 ]
