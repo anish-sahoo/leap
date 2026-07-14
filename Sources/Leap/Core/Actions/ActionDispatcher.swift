@@ -26,11 +26,13 @@ final class ActionDispatcher {
             ActionRunner.runCommand(command)
 
         case "script":
-            guard let body = action.body else {
-                Log.action.warning("'\(label)': script action missing body")
-                return
+            if let body = action.body, !body.isEmpty {
+                ActionRunner.runScript(body, interpreter: action.interpreter)
+            } else if let path = action.target, !path.isEmpty {
+                ActionRunner.runScriptFile(atPath: path, interpreter: action.interpreter)
+            } else {
+                Log.action.warning("'\(label)': script action needs a 'body' or a 'target' path")
             }
-            ActionRunner.runScript(body, interpreter: action.interpreter)
 
         default:
             Log.action.warning("'\(label)': unknown action type '\(action.type)'")

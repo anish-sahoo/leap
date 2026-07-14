@@ -41,7 +41,20 @@ target = "/Applications/Google Chrome.app"
 |-------------|--------------------------------------|-------------------------------------------|
 | `"app"`     | `target` (bundle path)               | Launch / focus / cycle windows.           |
 | `"command"` | `target` (shell command)             | Run a single shell command.               |
-| `"script"`  | `body`, `interpreter` (opt.), `name` | Run a script (`interpreter` defaults zsh).|
+| `"script"`  | `body` or `target` (path), `interpreter`, `name` | Run an inline script or a script file.    |
+
+A `script` action runs either an inline `body` or a script **file** at `target`
+(a path, `~` allowed). With `interpreter` it runs `env <interpreter> <path>`;
+without one it executes the file directly (needs a shebang / executable bit).
+
+```toml
+[[slots]]
+id = "dev-term"
+hotkey = "alt+6"
+[slots.action]
+type = "script"
+target = "~/.config/leap/scripts/open-btop.sh"
+```
 
 `action.name` gives command/script actions a display name for the cheat sheet.
 The cheat-sheet label for a slot is `label` → `action.name` → app name → `id`,
