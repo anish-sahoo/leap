@@ -1,12 +1,25 @@
 #!/usr/bin/env swift
 import AppKit
 
-// Generates Resources/AppIcon.icns — the ⌥ glyph on a blue→magenta rounded
+// Generates Resources/AppIcon.icns — the ⌥ glyph on a cobalt→magenta rounded
 // square (matches the menu-bar icon). Run via `mise run icon`.
 
 let root = FileManager.default.currentDirectoryPath
 let resources = "\(root)/Resources"
 try? FileManager.default.createDirectory(atPath: resources, withIntermediateDirectories: true)
+
+// Cobalt → magenta, with each color held near its corner so the blend is
+// concentrated in the middle.
+func gradient() -> NSGradient {
+    let cobalt = NSColor(srgbRed: 0.09, green: 0.27, blue: 0.80, alpha: 1)
+    let magenta = NSColor(srgbRed: 0.90, green: 0.15, blue: 0.75, alpha: 1)
+    let locations: [CGFloat] = [0.0, 0.34, 0.66, 1.0]
+    return NSGradient(
+        colors: [cobalt, cobalt, magenta, magenta],
+        atLocations: locations,
+        colorSpace: .sRGB
+    )!
+}
 
 func drawIcon(_ px: Int) -> NSBitmapImageRep {
     let size = CGFloat(px)
@@ -21,10 +34,7 @@ func drawIcon(_ px: Int) -> NSBitmapImageRep {
     let inset = size * 0.06
     let square = NSRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
     let path = NSBezierPath(roundedRect: square, xRadius: square.width * 0.2237, yRadius: square.width * 0.2237)
-    NSGradient(
-        starting: NSColor(red: 0.10, green: 0.42, blue: 1.00, alpha: 1),
-        ending: NSColor(red: 0.90, green: 0.15, blue: 0.75, alpha: 1)
-    )!.draw(in: path, angle: -45)
+    gradient().draw(in: path, angle: -45)
 
     let style = NSMutableParagraphStyle()
     style.alignment = .center
@@ -87,10 +97,7 @@ let srcDir = "\(resources)/icon-src"
 try? FileManager.default.createDirectory(atPath: srcDir, withIntermediateDirectories: true)
 
 let background = layer(1024) { size in
-    NSGradient(
-        starting: NSColor(red: 0.10, green: 0.42, blue: 1.00, alpha: 1),
-        ending: NSColor(red: 0.90, green: 0.15, blue: 0.75, alpha: 1)
-    )!.draw(in: NSRect(x: 0, y: 0, width: size, height: size), angle: -45)
+    gradient().draw(in: NSRect(x: 0, y: 0, width: size, height: size), angle: -45)
 }
 let glyph = layer(1024) { size in
     let style = NSMutableParagraphStyle()
