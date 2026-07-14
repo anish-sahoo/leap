@@ -1,5 +1,8 @@
 # Leap
 
+[![CI](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml/badge.svg)](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml)
+[![Tests](https://github.com/anish-sahoo/leap/actions/workflows/test.yml/badge.svg)](https://github.com/anish-sahoo/leap/actions/workflows/test.yml)
+
 A macOS menu-bar hotkey launcher. Bind global hotkeys to apps, shell commands,
 or scripts; launch / focus / cycle app windows; and see a cheat-sheet overlay of
 your bindings. Configured with a simple TOML file or an in-app settings window.
