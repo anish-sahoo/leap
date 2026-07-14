@@ -17,6 +17,16 @@ struct SettingsRenderTests {
         let toml = TOMLTabView(frame: NSRect(x: 0, y: 0, width: 600, height: 460))
         toml.setText(try ConfigStore.serialize(Config.starter))
         try snapshot(toml, to: "\(dir)/settings-toml.png")
+
+        for line in [
+            "INF [app] ready — 5 slots",
+            "INF [window] Ghostty: focusing (1 windows)",
+            "WRN [app] accessibility: NOT granted",
+            "ERR [action] action failed: no such file",
+            "DBG [window] frontmost, single window",
+        ] { LogStore.shared.append(line) }
+        try snapshot(LogTextView(frame: NSRect(x: 0, y: 0, width: 600, height: 200)),
+                     to: "\(dir)/settings-logs.png")
     }
 
     @MainActor

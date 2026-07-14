@@ -18,7 +18,8 @@ All notable changes to Leap are documented here. This project follows
 - Colored, human-readable stdout logs (ANSI, TTY-aware, honors `NO_COLOR`).
 - Settings window with three tabs: a form editor (cheat-sheet prefs + a slots
   table), a raw-TOML editor with live syntax highlighting, and a live Logs view.
-  Switching between form and TOML syncs changes both ways.
+  Switching between form and TOML syncs changes both ways. The Logs view is
+  colored by level.
 - Add/edit slots via a dialog (name, hotkey, type, target + Browse…) instead of
   editing a blank table row; double-click a row to edit it.
 - Config validation: syntax, unknown keys, invalid/duplicate hotkeys, action
