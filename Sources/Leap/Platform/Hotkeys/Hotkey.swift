@@ -29,6 +29,29 @@ struct Hotkey {
         return Hotkey(keyCode: code, modifiers: modifiers)
     }
 
+    /// Render a combo as menu-style symbols, e.g. "alt+1" -> "⌥1",
+    /// "cmd+shift+3" -> "⌘⇧3". Modifiers are ordered ⌃⌥⇧⌘ per macOS convention.
+    static func symbols(for combo: String) -> String {
+        let symbolByModifier = [
+            "ctrl": "⌃", "control": "⌃",
+            "alt": "⌥", "opt": "⌥", "option": "⌥",
+            "shift": "⇧",
+            "cmd": "⌘", "command": "⌘",
+        ]
+        let order = ["⌃", "⌥", "⇧", "⌘"]
+        var mods: Set<String> = []
+        var key = ""
+        for part in combo.lowercased().split(separator: "+")
+            .map({ $0.trimmingCharacters(in: .whitespaces) }) {
+            if let symbol = symbolByModifier[part] {
+                mods.insert(symbol)
+            } else {
+                key = part.uppercased()
+            }
+        }
+        return order.filter { mods.contains($0) }.joined() + key
+    }
+
     /// Step 1 supports the digit row; extend with letters/fn-keys as needed.
     private static func keyCode(for token: String) -> UInt32? {
         let digits: [String: Int] = [

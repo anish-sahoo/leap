@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var consoleController: ConsoleWindowController?
     private var editorController: ConfigEditorWindowController?
     private let dispatcher = ActionDispatcher(windows: AXWindowController())
+    private let cheatsheet = CheatsheetController()
 
     func applicationDidFinishLaunching(_: Notification) {
         // Accessory = lives in the menu bar, no Dock icon, doesn't steal focus.
@@ -17,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupStatusItem()
         HotkeyManager.shared.start()
+        cheatsheet.start()
 
         // Window control needs Accessibility permission; prompt on first launch.
         if Accessibility.requestIfNeeded() {
@@ -101,11 +103,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let combo = slot.hotkey
             let action = slot.action
             let ok = HotkeyManager.shared.register(hotkey) { [weak self] in
+                self?.cheatsheet.dismiss()
                 Log.app.info("fired \(combo) -> \(label)")
                 self?.dispatcher.perform(action, label: label)
             }
             Log.app.info("bound \(combo) -> \(label) \(ok ? "✓" : "✗ (in use?)")")
         }
+        cheatsheet.update(slots: config.slots)
         Log.app.info("ready — \(config.slots.count) slots")
     }
 
