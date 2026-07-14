@@ -55,9 +55,8 @@ run = "swift test"
 description = "Regenerate CHANGELOG.md from conventional commits"
 run = "git-cliff --output CHANGELOG.md"
 
-[tasks.release]
-description = "Cut a release (admin-only, runs in CI): mise run release -- patch|minor|major"
-run = "bash Scripts/release.sh"
+# Releases are intentionally NOT a mise task: cutting one is an admin-only
+# GitHub Actions workflow (Actions ▸ Release ▸ Run workflow). See RELEASING.md.
 
 [tasks.clean]
 description = "Remove build + dist artifacts"

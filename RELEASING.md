@@ -17,20 +17,12 @@ the single source of truth** — there is no version number hardcoded in source.
 
 ## Cutting a release
 
-Releasing is **admin-only** and runs entirely in CI. Pick a SemVer bump; the
-workflow computes the next version from the latest tag.
+Releasing is **admin-only** and runs entirely in CI — there is deliberately no
+local task or script, so no one can cut a release from their machine by accident.
 
-From the GitHub UI: **Actions ▸ Release ▸ Run workflow ▸** choose
-`patch` / `minor` / `major`.
-
-Or from the CLI:
-
-```sh
-mise run release -- major     # or: minor / patch
-```
-
-`Scripts/release.sh` just dispatches the workflow (`gh workflow run`). The
-workflow (`.github/workflows/release.yml`) then:
+In the GitHub UI: **Actions ▸ Release ▸ Run workflow ▸** choose the bump
+(`patch` / `minor` / `major`). The workflow computes the next version from the
+latest tag, then:
 
 1. Verifies the actor is a repo admin (otherwise it fails immediately).
 2. Computes the next tag from the latest one (`v0.0.0` + `major` → `v1.0.0`).
