@@ -70,16 +70,24 @@ enum TerminalLauncher {
 
     // MARK: - Launch strategies
 
-    /// Activate the (single) instance, open a new window with ⌘N, then type the
-    /// command. Keeps it one app instance so window cycling still works.
+    /// Activate the (single) instance and run the command in a new window, then
+    /// type it. Keeps it one app instance so window cycling still works.
+    ///
+    /// If the app was already running, `activate` doesn't make a window, so we
+    /// open one with ⌘N. On a cold launch the app opens its own window, so we
+    /// skip ⌘N (else we'd get two) and wait longer for it to be ready.
     private static func runInNewWindow(bundleID: String, command: String) {
+        let wasRunning = !NSRunningApplication
+            .runningApplications(withBundleIdentifier: bundleID).isEmpty
+        let settle = wasRunning ? "0.35" : "1.0"
+        let newWindow = wasRunning
+            ? "keystroke \"n\" using command down\n        delay 0.4\n        "
+            : ""
         let script = """
         tell application id "\(bundleID)" to activate
-        delay 0.35
+        delay \(settle)
         tell application "System Events"
-            keystroke "n" using command down
-            delay 0.4
-            keystroke "\(escaped(command))"
+            \(newWindow)keystroke "\(escaped(command))"
             key code 36
         end tell
         """
