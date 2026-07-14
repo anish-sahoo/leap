@@ -121,6 +121,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Log.app.info("bound \(combo) -> \(label) \(ok ? "✓" : "✗ (in use?)")")
         }
 
+        dispatcher.terminal = TerminalApp(config.terminal)
+        dispatcher.terminalCommand = config.terminalCommand
         registerSettingsHotkey()
         cheatsheet.configure(config.cheatsheet)
         cheatsheet.update(slots: config.slots)

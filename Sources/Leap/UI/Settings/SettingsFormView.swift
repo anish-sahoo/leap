@@ -10,6 +10,8 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
     private var activeSheet: SlotEditorSheet?
 
     private let table = NSTableView()
+    private let terminalPopup = NSPopUpButton()
+    private let terminalCommandField = NSTextField()
     private let triggerPopup = NSPopUpButton()
     private let positionPopup = NSPopUpButton()
     private let orientationPopup = NSPopUpButton()
@@ -45,6 +47,8 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
     func load(_ config: Config) {
         version = config.version
         slots = config.slots
+        terminalPopup.selectItem(withTitle: config.terminal ?? "auto")
+        terminalCommandField.stringValue = config.terminalCommand ?? ""
         triggerPopup.selectItem(withTitle: config.cheatsheet?.trigger ?? "alt")
         positionPopup.selectItem(withTitle: config.cheatsheet?.position ?? "center")
         orientationPopup.selectItem(withTitle: config.cheatsheet?.orientation ?? "vertical")
@@ -59,40 +63,60 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
             orientation: orientationPopup.titleOfSelectedItem,
             delayMs: Int(delayField.stringValue) ?? 150
         )
-        return Config(version: version, slots: slots, cheatsheet: cheatsheet)
+        let custom = terminalCommandField.stringValue.trimmingCharacters(in: .whitespaces)
+        return Config(
+            version: version,
+            slots: slots,
+            cheatsheet: cheatsheet,
+            terminal: terminalPopup.titleOfSelectedItem,
+            terminalCommand: custom.isEmpty ? nil : custom
+        )
     }
 
     // MARK: - Layout
 
     private func build() {
-        for popup in [triggerPopup, positionPopup, orientationPopup] {
+        for popup in [terminalPopup, triggerPopup, positionPopup, orientationPopup] {
             popup.translatesAutoresizingMaskIntoConstraints = false
         }
+        terminalPopup.addItems(withTitles: TerminalApp.allCases.map(\.rawValue))
         triggerPopup.addItems(withTitles: triggers)
         positionPopup.addItems(withTitles: positions)
         orientationPopup.addItems(withTitles: orientations)
         delayField.translatesAutoresizingMaskIntoConstraints = false
         delayField.placeholderString = "150"
         delayField.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        terminalCommandField.translatesAutoresizingMaskIntoConstraints = false
+        terminalCommandField.placeholderString = "custom: … {cmd} …"
+        terminalCommandField.widthAnchor.constraint(equalToConstant: 260).isActive = true
 
-        let cheatsheetRow = NSStackView(views: [
+        let generalRow = row([
+            labeled("Run commands in", terminalPopup),
+            labeled("Custom command", terminalCommandField),
+        ])
+        let cheatsheetRow = row([
             labeled("Trigger", triggerPopup), labeled("Position", positionPopup),
             labeled("Layout", orientationPopup), labeled("Delay (ms)", delayField),
         ])
-        cheatsheetRow.orientation = .horizontal
-        cheatsheetRow.spacing = 16
-        cheatsheetRow.alignment = .bottom
-        cheatsheetRow.translatesAutoresizingMaskIntoConstraints = false
 
-        let cheatsheetTitle = sectionTitle("Cheat sheet")
-        let slotsTitle = sectionTitle("Slots")
+        let sections: [NSView] = [
+            sectionTitle("General"), generalRow,
+            sectionTitle("Cheat sheet"), cheatsheetRow,
+            sectionTitle("Slots"),
+        ]
         let scroll = buildTable()
         let buttons = buildButtons()
-        [cheatsheetTitle, cheatsheetRow, slotsTitle, scroll, buttons].forEach(addSubview)
-        layoutSections(
-            cheatsheetTitle: cheatsheetTitle, cheatsheetRow: cheatsheetRow,
-            slotsTitle: slotsTitle, scroll: scroll, buttons: buttons
-        )
+        (sections + [scroll, buttons]).forEach(addSubview)
+        layoutSections(sections + [scroll, buttons])
+    }
+
+    private func row(_ views: [NSView]) -> NSStackView {
+        let stack = NSStackView(views: views)
+        stack.orientation = .horizontal
+        stack.spacing = 16
+        stack.alignment = .bottom
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
     }
 
     private func buildTable() -> NSScrollView {
@@ -125,32 +149,39 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
         return stack
     }
 
-    private func layoutSections(
-        cheatsheetTitle: NSView, cheatsheetRow: NSView,
-        slotsTitle: NSView, scroll: NSView, buttons: NSView
-    ) {
-        [cheatsheetTitle, cheatsheetRow, slotsTitle, scroll, buttons]
-            .forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
+    /// Stacks the ordered views top-to-bottom; the second-to-last (the table
+    /// scroll view) stretches to fill, and the last (buttons) pins to the bottom.
+    private func layoutSections(_ views: [NSView]) {
+        guard let scroll = views.dropLast().last, let buttons = views.last else { return }
         let inset: CGFloat = 16
-        NSLayoutConstraint.activate([
-            cheatsheetTitle.topAnchor.constraint(equalTo: topAnchor, constant: inset),
-            cheatsheetTitle.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
-            cheatsheetRow.topAnchor.constraint(equalTo: cheatsheetTitle.bottomAnchor, constant: 8),
-            cheatsheetRow.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
-            slotsTitle.topAnchor.constraint(equalTo: cheatsheetRow.bottomAnchor, constant: 18),
-            slotsTitle.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
-            scroll.topAnchor.constraint(equalTo: slotsTitle.bottomAnchor, constant: 8),
-            scroll.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
+        var constraints: [NSLayoutConstraint] = []
+        var previousBottom = topAnchor
+        var topSpacing: CGFloat = inset
+        for view in views.dropLast() {
+            constraints.append(view.topAnchor.constraint(
+                equalTo: previousBottom,
+                constant: topSpacing
+            ))
+            constraints.append(view.leadingAnchor.constraint(
+                equalTo: leadingAnchor,
+                constant: inset
+            ))
+            previousBottom = view.bottomAnchor
+            topSpacing = 8
+        }
+        constraints += [
             scroll.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -inset),
-            buttons.topAnchor.constraint(equalTo: scroll.bottomAnchor, constant: 8),
             buttons.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
+            buttons.topAnchor.constraint(equalTo: scroll.bottomAnchor, constant: 8),
             buttons.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -inset),
-        ])
+        ]
+        NSLayoutConstraint.activate(constraints)
     }
 
     private func sectionTitle(_ text: String) -> NSTextField {
         let field = NSTextField(labelWithString: text)
         field.font = .systemFont(ofSize: 13, weight: .semibold)
+        field.translatesAutoresizingMaskIntoConstraints = false
         return field
     }
 

@@ -1,12 +1,9 @@
 import Foundation
 
-/// Runs shell commands / scripts for "command" and "script" slot actions.
-/// Fire-and-forget: never blocks the hotkey path.
+/// Runs inline scripts / script files for "script" slot actions.
+/// Fire-and-forget: never blocks the hotkey path. ("command" actions run in a
+/// terminal — see TerminalLauncher.)
 enum ActionRunner {
-    static func runCommand(_ command: String) {
-        run(script: command, interpreter: "zsh")
-    }
-
     static func runScript(_ body: String, interpreter: String?) {
         run(script: body, interpreter: interpreter ?? "zsh")
     }

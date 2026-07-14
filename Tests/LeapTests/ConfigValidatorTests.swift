@@ -71,6 +71,21 @@ struct ConfigValidatorTests {
         #expect(ConfigValidator.validate(text).contains { $0.contains("cheatsheet.position") })
     }
 
+    @Test("rejects an invalid terminal")
+    func badTerminal() {
+        let text = valid.replacingOccurrences(of: "version = 1", with: "version = 1\nterminal = \"hyper\"")
+        #expect(ConfigValidator.validate(text).contains { $0.contains("terminal 'hyper'") })
+    }
+
+    @Test("accepts a valid terminal")
+    func goodTerminal() {
+        let text = valid.replacingOccurrences(
+            of: "version = 1",
+            with: "version = 1\nterminal = \"ghostty\""
+        )
+        #expect(ConfigValidator.validate(text).isEmpty)
+    }
+
     @Test("reports a syntax error")
     func syntaxError() {
         #expect(ConfigValidator.validate("this is not toml [[[").contains { $0.contains("Syntax error") })

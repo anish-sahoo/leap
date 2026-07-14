@@ -9,6 +9,8 @@ All notable changes to Leap are documented here. This project follows
 ### Features
 - Menu-bar app that binds global hotkeys to apps/scripts.
 - Launch / focus / cycle-windows behavior via the Accessibility API.
+- `command` actions run in a new terminal window (so TUIs like `btop` work),
+  with a configurable terminal (`auto`/Terminal/iTerm2/Ghostty/…/`custom`).
 - Cheat-sheet overlay: hold the trigger modifier to see all bound hotkeys in a
   floating, non-activating panel (debounced so a quick `⌥1` doesn't flash it).
   Shows app icons, a Settings shortcut (`⌥,`), and is configurable via

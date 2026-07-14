@@ -44,7 +44,7 @@ target = "/Applications/Google Chrome.app"
 | `type`      | Fields used                          | Behavior                                  |
 |-------------|--------------------------------------|-------------------------------------------|
 | `"app"`     | `target` (bundle path)               | Launch / focus / cycle windows.           |
-| `"command"` | `target` (shell command)             | Run a single shell command.               |
+| `"command"` | `target` (shell command)             | Run in a new terminal window (see below). |
 | `"script"`  | `body` or `target` (path), `interpreter`, `name` | Run an inline script or a script file.    |
 
 A `script` action runs either an inline `body` or a script **file** at `target`
@@ -74,6 +74,24 @@ label = "btop"
 type = "script"
 interpreter = "bash"
 body = "open -a Ghostty; sleep 1; osascript -e 'tell app \"System Events\" to keystroke \"btop\\n\"'"
+```
+
+## Terminal for commands
+
+`command` actions open a new terminal window and run there (so TUIs like `btop`
+work). Choose the terminal at the top level:
+
+```toml
+terminal = "auto"   # auto (default) | terminal | iterm2 | ghostty
+                    #   | warp | kitty | alacritty | custom
+```
+
+`auto` prefers Ghostty, then iTerm2, then Terminal.app. For anything else, use
+`custom` with a shell template where `{cmd}` is replaced by the command:
+
+```toml
+terminal = "custom"
+terminalCommand = "open -na WezTerm --args start -- zsh -lc '{cmd}'"
 ```
 
 ## Cheat sheet

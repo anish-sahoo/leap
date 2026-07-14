@@ -5,6 +5,11 @@
 final class ActionDispatcher {
     private let windows: WindowSwitching
 
+    /// Terminal used for "command" actions (updated from config on reload).
+    var terminal: TerminalApp = .auto
+    /// Shell template for `terminal == .custom`.
+    var terminalCommand: String?
+
     init(windows: WindowSwitching) {
         self.windows = windows
     }
@@ -23,7 +28,7 @@ final class ActionDispatcher {
                 Log.action.warning("'\(label)': command action missing target")
                 return
             }
-            ActionRunner.runCommand(command)
+            TerminalLauncher.run(command, in: terminal, customTemplate: terminalCommand)
 
         case "script":
             if let body = action.body, !body.isEmpty {

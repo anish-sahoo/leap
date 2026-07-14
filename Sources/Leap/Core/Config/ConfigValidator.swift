@@ -4,7 +4,9 @@ import TOMLKit
 /// Validates raw TOML config text: syntax, unknown keys, and semantic rules.
 /// Returns a list of human-readable problems; empty means valid.
 enum ConfigValidator {
-    private static let topKeys: Set<String> = ["version", "slots", "cheatsheet"]
+    private static let topKeys: Set<String> =
+        ["version", "slots", "cheatsheet", "terminal", "terminalCommand"]
+    private static let terminals = Set(TerminalApp.allCases.map(\.rawValue))
     private static let slotKeys: Set<String> = ["id", "hotkey", "label", "action"]
     private static let actionKeys: Set<String> = ["type", "target", "body", "interpreter", "name"]
     private static let cheatsheetKeys: Set<String> = [
@@ -95,6 +97,12 @@ enum ConfigValidator {
                 errors.append("\(scope): duplicate hotkey '\(slot.hotkey)'")
             }
             errors += actionErrors(slot.action, scope: scope)
+        }
+        if let terminal = config.terminal, !terminals.contains(terminal.lowercased()) {
+            errors.append("terminal '\(terminal)' is not valid")
+        }
+        if config.terminal?.lowercased() == "custom", (config.terminalCommand ?? "").isEmpty {
+            errors.append("terminal is 'custom' but terminalCommand is empty")
         }
         errors += cheatsheetErrors(config.cheatsheet)
         return errors

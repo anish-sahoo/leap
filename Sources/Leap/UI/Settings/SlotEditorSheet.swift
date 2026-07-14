@@ -116,8 +116,8 @@ final class SlotEditorSheet: NSWindowController {
     @objc private func typeChanged() {
         switch typePopup.titleOfSelectedItem {
         case "command":
-            targetLabel.stringValue = "Command"
-            targetField.placeholderString = "open -a Ghostty"
+            targetLabel.stringValue = "Command (runs in a terminal)"
+            targetField.placeholderString = "btop"
             browseButton.isHidden = true
         case "script":
             targetLabel.stringValue = "Script path"

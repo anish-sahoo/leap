@@ -5,6 +5,12 @@ struct Config: Codable {
     var version: Int
     var slots: [Slot]
     var cheatsheet: CheatsheetConfig?
+    /// Terminal used to run "command" actions: auto (default) | terminal |
+    /// iterm2 | ghostty | warp | kitty | alacritty | custom.
+    var terminal: String?
+    /// Shell command template for `terminal = "custom"`; `{cmd}` is replaced
+    /// with the action's command. E.g. "open -na WezTerm --args -e zsh -lc '{cmd}'".
+    var terminalCommand: String?
 
     /// Seeded from the Hammerspoon prototype so there's something to press on
     /// first launch.
@@ -42,7 +48,9 @@ struct Config: Codable {
                 action: .init(type: "app", target: "/Applications/Zed.app")
             ),
         ],
-        cheatsheet: nil
+        cheatsheet: nil,
+        terminal: nil,
+        terminalCommand: nil
     )
 }
 
