@@ -11,6 +11,11 @@ final class CheatsheetController {
     /// Symbols shown for the built-in "open settings" shortcut (see AppDelegate).
     static let settingsSymbols = "⌥,"
 
+    /// Invoked when a slot entry is clicked.
+    var onActivateSlot: ((Slot) -> Void)?
+    /// Invoked when the Settings entry is clicked.
+    var onOpenSettings: (() -> Void)?
+
     private let panel = CheatsheetPanel()
 
     private var slots: [Slot] = []
@@ -95,7 +100,21 @@ final class CheatsheetController {
             symbols: Self.settingsSymbols,
             label: "Settings"
         )
-        let view = CheatsheetView(slots: slots, orientation: orientation, footer: footer)
+        let view = CheatsheetView(
+            slots: slots,
+            orientation: orientation,
+            footer: footer,
+            onSelect: { [weak self] index in
+                guard let self, slots.indices.contains(index) else { return }
+                let slot = slots[index]
+                dismiss()
+                onActivateSlot?(slot)
+            },
+            onSettings: { [weak self] in
+                self?.dismiss()
+                self?.onOpenSettings?()
+            }
+        )
         panel.present(view, at: position)
         isShown = true
     }

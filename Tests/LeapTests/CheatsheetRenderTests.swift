@@ -20,7 +20,9 @@ struct CheatsheetRenderTests {
         let view = CheatsheetView(
             slots: Config.starter.slots,
             orientation: .vertical,
-            footer: settings
+            footer: settings,
+            onSelect: { _ in },
+            onSettings: {}
         )
         view.appearance = NSAppearance(named: .darkAqua)
         view.layoutSubtreeIfNeeded()

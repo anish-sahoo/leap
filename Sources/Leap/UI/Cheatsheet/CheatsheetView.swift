@@ -7,8 +7,9 @@ enum CheatsheetOrientation: String {
     }
 }
 
-/// Frosted-glass cheat-sheet content: a title, one entry per slot (icon +
-/// hotkey symbols + label), and an optional footer (e.g. the Settings shortcut).
+/// Frosted-glass cheat sheet: a title, one clickable entry per slot
+/// (icon · name … shortcut), and a footer (the Settings shortcut).
+/// Entries highlight on hover and invoke `onSelect` / `onSettings` on click.
 @MainActor
 final class CheatsheetView: NSVisualEffectView {
     struct Entry {
@@ -18,9 +19,53 @@ final class CheatsheetView: NSVisualEffectView {
     }
 
     private let iconSize: CGFloat = 22
+    private let verticalWidth: CGFloat = 240
 
-    init(slots: [Slot], orientation: CheatsheetOrientation, footer: Entry?) {
+    init(
+        slots: [Slot],
+        orientation: CheatsheetOrientation,
+        footer: Entry?,
+        onSelect: @escaping (Int) -> Void,
+        onSettings: @escaping () -> Void
+    ) {
         super.init(frame: .zero)
+        configureAppearance()
+
+        let root = NSStackView()
+        root.orientation = .vertical
+        root.alignment = .leading
+        root.spacing = 12
+        root.addArrangedSubview(titleLabel())
+
+        let entries = slots.map(entry(for:))
+        root.addArrangedSubview(bodyView(entries, orientation: orientation, onSelect: onSelect))
+
+        var fullWidth: [NSView] = []
+        if let footer {
+            let separator = separatorLine()
+            let button = HoverButton(content: rowContent(footer, dimmed: true), onClick: onSettings)
+            root.addArrangedSubview(separator)
+            root.addArrangedSubview(button)
+            fullWidth = [separator, button]
+        }
+
+        root.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(root)
+        NSLayoutConstraint.activate([
+            root.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            root.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            root.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            root.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+        ])
+        fullWidth.forEach { $0.widthAnchor.constraint(equalTo: root.widthAnchor).isActive = true }
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
+
+    private func configureAppearance() {
         material = .hudWindow
         blendingMode = .behindWindow
         state = .active
@@ -30,78 +75,67 @@ final class CheatsheetView: NSVisualEffectView {
         layer?.masksToBounds = true
         layer?.borderWidth = 1
         layer?.borderColor = NSColor.white.withAlphaComponent(0.14).cgColor
+    }
 
-        let entries = slots.map(entry(for:))
-        let body = orientation == .horizontal
-            ? buildHorizontal(entries)
-            : buildVertical(entries)
-
-        let root = NSStackView(views: [titleLabel()] + [body])
-        root.orientation = .vertical
-        root.alignment = .leading
-        root.spacing = 14
-
-        if let footer {
-            root.addArrangedSubview(separator())
-            root.addArrangedSubview(entryRow(footer, dimmed: true))
+    private func bodyView(
+        _ entries: [Entry],
+        orientation: CheatsheetOrientation,
+        onSelect: @escaping (Int) -> Void
+    ) -> NSView {
+        if orientation == .horizontal {
+            let cells = entries.enumerated().map { index, entry in
+                HoverButton(content: cellContent(entry)) { onSelect(index) }
+            }
+            let row = NSStackView(views: cells)
+            row.orientation = .horizontal
+            row.alignment = .top
+            row.spacing = 14
+            return row
         }
-
-        root.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(root)
-        NSLayoutConstraint.activate([
-            root.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 22),
-            root.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -22),
-            root.topAnchor.constraint(equalTo: topAnchor, constant: 18),
-            root.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18),
-        ])
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("not supported")
-    }
-
-    // MARK: - Layouts
-
-    private func buildVertical(_ entries: [Entry]) -> NSView {
-        let stack = NSStackView(views: entries.map { entryRow($0, dimmed: false) })
-        stack.orientation = .vertical
-        stack.alignment = .leading
-        stack.spacing = 10
-        return stack
-    }
-
-    private func buildHorizontal(_ entries: [Entry]) -> NSView {
-        let cells = entries.map { entry -> NSView in
-            let cell = NSStackView(views: [
-                imageView(entry.icon, size: 30),
-                keyField(entry.symbols),
-                labelField(entry.label),
-            ])
-            cell.orientation = .vertical
-            cell.alignment = .centerX
-            cell.spacing = 5
-            return cell
+        let rows = entries.enumerated().map { index, entry in
+            HoverButton(content: rowContent(entry, dimmed: false)) { onSelect(index) }
         }
-        let row = NSStackView(views: cells)
-        row.orientation = .horizontal
-        row.alignment = .top
-        row.spacing = 22
-        return row
+        let body = NSStackView(views: rows)
+        body.orientation = .vertical
+        body.alignment = .leading
+        body.spacing = 3
+        body.widthAnchor.constraint(equalToConstant: verticalWidth).isActive = true
+        rows.forEach { $0.widthAnchor.constraint(equalTo: body.widthAnchor).isActive = true }
+        return body
     }
 
-    /// One horizontal row: icon · hotkey · label.
-    private func entryRow(_ entry: Entry, dimmed: Bool) -> NSView {
-        let key = keyField(entry.symbols)
-        key.textColor = dimmed ? .tertiaryLabelColor : .labelColor
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: 34).isActive = true
+    // MARK: - Row layouts
+
+    /// Vertical list row: icon · name … shortcut (shortcut pinned right).
+    private func rowContent(_ entry: Entry, dimmed: Bool) -> NSView {
         let label = labelField(entry.label)
         label.textColor = dimmed ? .secondaryLabelColor : .labelColor
-        let row = NSStackView(views: [imageView(entry.icon, size: iconSize), key, label])
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        let key = keyField(entry.symbols)
+        key.textColor = dimmed ? .tertiaryLabelColor : .secondaryLabelColor
+        key.setContentHuggingPriority(.required, for: .horizontal)
+
+        let row = NSStackView(views: [imageView(entry.icon, size: iconSize), label, key])
         row.orientation = .horizontal
         row.alignment = .centerY
-        row.spacing = 12
+        row.spacing = 10
+        row.distribution = .fill
         return row
+    }
+
+    /// Horizontal grid cell: icon over name over shortcut.
+    private func cellContent(_ entry: Entry) -> NSView {
+        let cell = NSStackView(views: [
+            imageView(entry.icon, size: 30),
+            labelField(entry.label),
+            keyField(entry.symbols),
+        ])
+        cell.orientation = .vertical
+        cell.alignment = .centerX
+        cell.spacing = 4
+        return cell
     }
 
     // MARK: - Entry building
@@ -136,8 +170,7 @@ final class CheatsheetView: NSVisualEffectView {
 
     private func keyField(_ text: String) -> NSTextField {
         let field = NSTextField(labelWithString: text)
-        field.font = .monospacedSystemFont(ofSize: 15, weight: .semibold)
-        field.textColor = .labelColor
+        field.font = .monospacedSystemFont(ofSize: 14, weight: .semibold)
         field.alignment = .right
         return field
     }
@@ -145,19 +178,19 @@ final class CheatsheetView: NSVisualEffectView {
     private func labelField(_ text: String) -> NSTextField {
         let field = NSTextField(labelWithString: text)
         field.font = .systemFont(ofSize: 15)
-        field.textColor = .labelColor
         return field
     }
 
     private func imageView(_ image: NSImage, size: CGFloat) -> NSImageView {
         let view = NSImageView(image: image)
         view.imageScaling = .scaleProportionallyUpOrDown
+        view.setContentHuggingPriority(.required, for: .horizontal)
         view.widthAnchor.constraint(equalToConstant: size).isActive = true
         view.heightAnchor.constraint(equalToConstant: size).isActive = true
         return view
     }
 
-    private func separator() -> NSView {
+    private func separatorLine() -> NSView {
         let box = NSBox()
         box.boxType = .separator
         return box

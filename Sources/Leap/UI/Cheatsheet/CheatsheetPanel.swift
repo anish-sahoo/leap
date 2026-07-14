@@ -31,7 +31,7 @@ final class CheatsheetPanel: NSPanel {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
-        ignoresMouseEvents = true
+        ignoresMouseEvents = false // entries are hoverable/clickable while shown
         hidesOnDeactivate = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
     }

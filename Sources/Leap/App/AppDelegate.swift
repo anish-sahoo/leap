@@ -19,6 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupStatusItem()
         HotkeyManager.shared.start()
+        cheatsheet.onActivateSlot = { [weak self] slot in
+            Log.app.info("clicked \(slot.hotkey) -> \(slot.displayName)")
+            self?.dispatcher.perform(slot.action, label: slot.displayName)
+        }
+        cheatsheet.onOpenSettings = { [weak self] in self?.editConfig() }
         cheatsheet.start()
 
         // Window control needs Accessibility permission; prompt on first launch.
