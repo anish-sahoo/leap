@@ -34,6 +34,10 @@ run = "swift run"
 description = "Optimized release build"
 run = "swift build -c release"
 
+[tasks.icon]
+description = "Regenerate the app icon (.icns) + Icon Composer layer sources"
+run = "swift Scripts/make-icon.swift"
+
 [tasks.bundle]
 description = "Build Leap.app into ./dist"
 run = "bash Scripts/bundle.sh"
