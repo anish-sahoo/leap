@@ -37,8 +37,38 @@ mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
 cp "$BIN_PATH" "$APP/Contents/MacOS/$APP_NAME"
 
+# Icon: prefer the layered Liquid Glass icon (Resources/icon.icon) compiled to
+# an Assets.car via actool. The working invocation passes the .icon as a
+# top-level document argument *alongside* an (empty) .xcassets — actool silently
+# skips a lone .icon and only runs the icon pipeline when a catalog is present
+# too. Needs the macOS 26 SDK; otherwise we fall back to the flat AppIcon.icns
+# that `mise run icon` generates.
 ICON_KEY=""
-if [[ -f "$ROOT/Resources/AppIcon.icns" ]]; then
+ICON_SRC="$ROOT/Resources/icon.icon"
+if [[ -d "$ICON_SRC" ]] && command -v xcrun >/dev/null 2>&1; then
+    echo "==> Compiling Liquid Glass icon (Resources/icon.icon)"
+    ICON_WORK="$(mktemp -d)"
+    cp -R "$ICON_SRC" "$ICON_WORK/AppIcon.icon"
+    mkdir -p "$ICON_WORK/Assets.xcassets" "$ICON_WORK/out"
+    printf '{ "info": { "author": "xcode", "version": 1 } }\n' \
+        > "$ICON_WORK/Assets.xcassets/Contents.json"
+    if xcrun actool "$ICON_WORK/AppIcon.icon" "$ICON_WORK/Assets.xcassets" \
+        --compile "$ICON_WORK/out" --app-icon AppIcon \
+        --platform macosx --target-device mac --minimum-deployment-target 26.0 \
+        --output-partial-info-plist "$ICON_WORK/out/partial.plist" >/dev/null 2>&1 \
+        && [[ -f "$ICON_WORK/out/Assets.car" ]]; then
+        cp "$ICON_WORK/out/Assets.car" "$APP/Contents/Resources/Assets.car"
+        [[ -f "$ICON_WORK/out/AppIcon.icns" ]] \
+            && cp "$ICON_WORK/out/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+        ICON_KEY="    <key>CFBundleIconName</key><string>AppIcon</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>"
+        echo "    Compiled -> Assets.car (+ loose AppIcon.icns fallback)"
+    else
+        echo "    actool skipped the .icon (needs the macOS 26 SDK); falling back to flat .icns"
+    fi
+    rm -rf "$ICON_WORK"
+fi
+if [[ -z "$ICON_KEY" && -f "$ROOT/Resources/AppIcon.icns" ]]; then
     cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
     ICON_KEY="    <key>CFBundleIconFile</key><string>AppIcon</string>"
 fi

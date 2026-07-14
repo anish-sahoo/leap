@@ -27,6 +27,8 @@ All notable changes to Leap are documented here. This project follows
 - TOML config at `~/.config/leap/config.toml`, with an in-app editor and
   import/export.
 - Log console window (swift-log facade).
-- App icon (⌥ glyph on a blue→purple square); `mise run icon` regenerates it
-  and the layered Icon Composer sources for a full Liquid Glass icon.
+- App icon: the layered Liquid Glass icon (`Resources/icon.icon`, from Icon
+  Composer) is compiled to `Assets.car` at bundle time via `actool`, with a flat
+  `AppIcon.icns` fallback for pre-macOS-26. `mise run icon` regenerates the
+  `.icns` and the layered Icon Composer sources.
 - Start-at-login (`SMAppService`) and `.app` bundling.
