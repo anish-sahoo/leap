@@ -5,7 +5,9 @@ the single source of truth** — there is no version number hardcoded in source.
 
 ## How versioning works
 
-- Tag a release `vX.Y.Z`.
+- **Git tags (`vX.Y.Z`) are the only place the version lives** — there is no
+  version file to edit. The next release number is computed from the latest tag
+  plus the bump you pick, so nothing needs to be tracked between releases.
 - `Scripts/bundle.sh` derives the version from `git describe` and stamps the
   `.app`'s `Info.plist`:
   - `CFBundleShortVersionString` = `X.Y.Z` (marketing version)
@@ -15,18 +17,34 @@ the single source of truth** — there is no version number hardcoded in source.
 
 ## Cutting a release
 
+Releasing is **admin-only** and runs entirely in CI. Pick a SemVer bump; the
+workflow computes the next version from the latest tag.
+
+From the GitHub UI: **Actions ▸ Release ▸ Run workflow ▸** choose
+`patch` / `minor` / `major`.
+
+Or from the CLI:
+
 ```sh
-mise run release -- 1.2.3
+mise run release -- major     # or: minor / patch
 ```
 
-`Scripts/release.sh` will:
+`Scripts/release.sh` just dispatches the workflow (`gh workflow run`). The
+workflow (`.github/workflows/release.yml`) then:
 
-1. Verify the version is valid SemVer and the working tree is clean.
-2. Regenerate `CHANGELOG.md` from Conventional Commits (git-cliff) and commit it.
-3. Create an annotated tag `v1.2.3` and push it.
+1. Verifies the actor is a repo admin (otherwise it fails immediately).
+2. Computes the next tag from the latest one (`v0.0.0` + `major` → `v1.0.0`).
+3. Runs `mise run check` + `swift test`.
+4. Regenerates `CHANGELOG.md` (git-cliff) and commits it.
+5. Bundles `Leap.app`, then zips + builds a DMG + checksums.
+6. Tags the release commit and publishes a GitHub Release with generated notes.
 
-Pushing the tag triggers `.github/workflows/release.yml`, which builds, tests,
-bundles `Leap.app`, zips it, and publishes a GitHub Release with generated notes.
+### Access control
+
+`workflow_dispatch` already requires write access; the `guard` job narrows it to
+**admins** via the collaborator-permission API. To lock it down further, add a
+[deployment environment](https://docs.github.com/actions/deployment/targeting-different-environments)
+with required reviewers and reference it from the `release` job.
 
 ## Choosing the number
 

@@ -56,7 +56,7 @@ description = "Regenerate CHANGELOG.md from conventional commits"
 run = "git-cliff --output CHANGELOG.md"
 
 [tasks.release]
-description = "Cut a SemVer release: mise run release -- X.Y.Z"
+description = "Cut a release (admin-only, runs in CI): mise run release -- patch|minor|major"
 run = "bash Scripts/release.sh"
 
 [tasks.clean]

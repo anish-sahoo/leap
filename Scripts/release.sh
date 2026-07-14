@@ -1,44 +1,34 @@
 #!/usr/bin/env bash
-# Cut a SemVer release: validate, update CHANGELOG, tag, and push.
+# Cut a release by triggering the admin-only GitHub Actions release workflow.
 #
-#   Scripts/release.sh 1.2.3
+#   Scripts/release.sh patch|minor|major
 #
-# The pushed tag (v1.2.3) triggers .github/workflows/release.yml, which builds
-# and publishes the GitHub Release with the bundled app.
+# The workflow computes the next version from the latest tag, builds + tests,
+# bundles Leap.app, tags the release commit, and publishes the GitHub Release.
+# Releasing is admin-only and happens entirely in CI — nothing is tagged or
+# pushed from your machine here.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="${1:-}"
-if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "usage: Scripts/release.sh X.Y.Z   (got: '${VERSION}')" >&2
+BUMP="${1:-}"
+case "$BUMP" in
+    patch | minor | major) ;;
+    *)
+        echo "usage: Scripts/release.sh patch|minor|major   (got: '${BUMP}')" >&2
+        exit 1
+        ;;
+esac
+
+if ! command -v gh >/dev/null 2>&1; then
+    echo "error: GitHub CLI (gh) is required. See https://cli.github.com" >&2
     exit 1
 fi
-TAG="v$VERSION"
 
-if [[ -n "$(git status --porcelain)" ]]; then
-    echo "error: working tree not clean; commit or stash first." >&2
-    exit 1
-fi
-if git rev-parse "$TAG" >/dev/null 2>&1; then
-    echo "error: tag $TAG already exists." >&2
-    exit 1
-fi
+echo "==> Dispatching release workflow (bump: $BUMP)"
+gh workflow run release.yml -f bump="$BUMP"
 
-# Refresh CHANGELOG for this version if git-cliff is available.
-if command -v git-cliff >/dev/null 2>&1; then
-    echo "==> Updating CHANGELOG.md"
-    git-cliff --tag "$TAG" --output CHANGELOG.md
-    git add CHANGELOG.md
-    git commit -m "chore(release): $TAG"
-fi
-
-echo "==> Tagging $TAG"
-git tag -a "$TAG" -m "$TAG"
-
-echo "==> Pushing"
-git push origin HEAD
-git push origin "$TAG"
-
-echo "==> Done. The release workflow will build and publish $TAG."
+echo "==> Triggered. Watch it:"
+echo "    gh run watch \$(gh run list --workflow=release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
+echo "    or: gh run list --workflow=release.yml"
