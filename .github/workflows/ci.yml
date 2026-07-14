@@ -9,17 +9,44 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Each check is its own job so they show up as separate entries (CI / format,
+# CI / lint, CI / test, CI / build) and can be tracked independently, while all
+# living under the one "CI" workflow.
 jobs:
+  format:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install mise + tools
+        uses: jdx/mise-action@v3
+      - name: SwiftFormat (lint mode)
+        run: swiftformat --lint Sources
+
+  lint:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install mise + tools
+        uses: jdx/mise-action@v3
+      - name: SwiftLint (strict)
+        run: swiftlint lint --quiet --strict Sources
+
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install mise + tools
+        uses: jdx/mise-action@v3
+      - name: Test
+        run: swift test
+
   build:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
-
       - name: Install mise + tools
         uses: jdx/mise-action@v3
-
       - name: Build
         run: swift build
-
       - name: Bundle smoke test
         run: mise run bundle

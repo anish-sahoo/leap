@@ -1,7 +1,6 @@
 # Leap
 
 [![CI](https://img.shields.io/github/actions/workflow/status/anish-sahoo/leap/ci.yml?branch=main&label=CI)](https://github.com/anish-sahoo/leap/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/github/actions/workflow/status/anish-sahoo/leap/test.yml?branch=main&label=tests)](https://github.com/anish-sahoo/leap/actions/workflows/test.yml)
 [![Release](https://img.shields.io/github/v/release/anish-sahoo/leap?color=blue)](https://github.com/anish-sahoo/leap/releases/latest)
 [![License](https://img.shields.io/github/license/anish-sahoo/leap)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-14%2B-black?logo=apple&logoColor=white)
