@@ -155,8 +155,19 @@ final class CheatsheetView: NSVisualEffectView {
             image.size = NSSize(width: iconSize, height: iconSize)
             return image
         }
-        let symbol = slot.action.type == "app" ? "app.dashed" : "terminal"
-        return NSImage(systemSymbolName: symbol, accessibilityDescription: nil) ?? NSImage()
+        return placeholderIcon(for: slot.action.type)
+    }
+
+    private func placeholderIcon(for type: String) -> NSImage {
+        let symbol = switch type {
+        case "script": "scroll"
+        case "command": "terminal"
+        default: "app.dashed"
+        }
+        let config = NSImage.SymbolConfiguration(pointSize: iconSize - 4, weight: .regular)
+        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
+            .withSymbolConfiguration(config)
+        return image ?? NSImage()
     }
 
     // MARK: - Fields

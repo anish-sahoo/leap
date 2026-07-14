@@ -17,8 +17,14 @@ struct CheatsheetRenderTests {
             symbols: CheatsheetController.settingsSymbols,
             label: "Settings"
         )
+        let slots = Config.starter.slots + [
+            Slot(id: "btop", hotkey: "alt+6", label: "btop",
+                 action: .init(type: "script", body: "btop")),
+            Slot(id: "say", hotkey: "alt+7", label: "Say Hi",
+                 action: .init(type: "command", target: "say hi")),
+        ]
         let view = CheatsheetView(
-            slots: Config.starter.slots,
+            slots: slots,
             orientation: .vertical,
             footer: settings,
             onSelect: { _ in },
