@@ -1,7 +1,7 @@
 #!/usr/bin/env swift
 import AppKit
 
-// Generates Resources/AppIcon.icns — the ⌥ glyph on a blue→purple rounded
+// Generates Resources/AppIcon.icns — the ⌥ glyph on a blue→magenta rounded
 // square (matches the menu-bar icon). Run via `mise run icon`.
 
 let root = FileManager.default.currentDirectoryPath
@@ -22,9 +22,9 @@ func drawIcon(_ px: Int) -> NSBitmapImageRep {
     let square = NSRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
     let path = NSBezierPath(roundedRect: square, xRadius: square.width * 0.2237, yRadius: square.width * 0.2237)
     NSGradient(
-        starting: NSColor(red: 0.30, green: 0.45, blue: 0.98, alpha: 1),
-        ending: NSColor(red: 0.45, green: 0.30, blue: 0.92, alpha: 1)
-    )!.draw(in: path, angle: -90)
+        starting: NSColor(red: 0.10, green: 0.42, blue: 1.00, alpha: 1),
+        ending: NSColor(red: 0.90, green: 0.15, blue: 0.75, alpha: 1)
+    )!.draw(in: path, angle: -45)
 
     let style = NSMutableParagraphStyle()
     style.alignment = .center
@@ -88,9 +88,9 @@ try? FileManager.default.createDirectory(atPath: srcDir, withIntermediateDirecto
 
 let background = layer(1024) { size in
     NSGradient(
-        starting: NSColor(red: 0.30, green: 0.45, blue: 0.98, alpha: 1),
-        ending: NSColor(red: 0.45, green: 0.30, blue: 0.92, alpha: 1)
-    )!.draw(in: NSRect(x: 0, y: 0, width: size, height: size), angle: -90)
+        starting: NSColor(red: 0.10, green: 0.42, blue: 1.00, alpha: 1),
+        ending: NSColor(red: 0.90, green: 0.15, blue: 0.75, alpha: 1)
+    )!.draw(in: NSRect(x: 0, y: 0, width: size, height: size), angle: -45)
 }
 let glyph = layer(1024) { size in
     let style = NSMutableParagraphStyle()
