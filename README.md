@@ -26,7 +26,23 @@ your bindings. Configured with a simple TOML file or an in-app settings window.
 - Xcode (Swift 6 toolchain)
 - [mise](https://mise.jdx.dev/) (recommended, for tasks)
 
-## Quick start
+## Install
+
+Download `Leap.app` from the [latest release](https://github.com/anish-sahoo/leap/releases/latest)
+(unzip, or open the `.dmg` and drag it to `/Applications`).
+
+The app is ad-hoc signed (not notarized), so macOS Gatekeeper will refuse to
+open it with *"Apple could not verify Leap.app is free of malware."* Clear the
+quarantine flag once:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Leap.app
+```
+
+Then open it normally. (Alternatively: **System Settings → Privacy & Security →
+Open Anyway**.)
+
+## Quick start (from source)
 
 ```sh
 mise run setup    # install dev tools + git hooks (first time)

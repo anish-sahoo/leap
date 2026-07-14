@@ -42,7 +42,7 @@ jobs:
     needs: guard
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0 # tags + full history for git describe / changelog
 
@@ -69,7 +69,7 @@ jobs:
           echo "==> $LATEST + $BUMP -> $TAG"
 
       - name: Install mise + tools
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v3
 
       - name: Verify (format + lint + test)
         run: |
