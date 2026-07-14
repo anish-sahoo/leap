@@ -21,21 +21,23 @@ enum TerminalApp: String, CaseIterable {
     }
 }
 
-/// Opens a command in a new terminal window. Terminal.app and iTerm2 use
-/// AppleScript; others launch a fresh instance with `open … --args`.
+/// Runs a command in a new window of the user's terminal, reusing the running
+/// instance (so it stays one app and window-cycling keeps working). Terminal.app
+/// and iTerm2 use their AppleScript APIs; others activate the app and open a new
+/// window via ⌘N + typed input (needs Accessibility).
 enum TerminalLauncher {
     static func run(_ command: String, in preference: TerminalApp, customTemplate: String? = nil) {
         let terminal = resolve(preference)
         Log.action.info("running command in \(terminal.rawValue)")
         switch terminal {
-        case .terminal, .warp:
+        case .terminal:
             runAppleScript(appleTerminalScript(command))
         case .iterm2:
             runAppleScript(itermScript(command))
-        case .ghostty, .alacritty:
-            openInstance(terminal, args: ["-e", "/bin/zsh", "-lc", command])
-        case .kitty:
-            openInstance(terminal, args: ["/bin/zsh", "-lc", command])
+        case .ghostty, .alacritty, .kitty, .warp:
+            if let id = terminal.bundleID {
+                runInNewWindow(bundleID: id, command: command)
+            }
         case .custom:
             runCustom(command, template: customTemplate)
         case .auto:
@@ -68,12 +70,20 @@ enum TerminalLauncher {
 
     // MARK: - Launch strategies
 
-    private static func openInstance(_ terminal: TerminalApp, args: [String]) {
-        guard let id = terminal.bundleID else { return }
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-n", "-b", id, "--args"] + args
-        try? process.run()
+    /// Activate the (single) instance, open a new window with ⌘N, then type the
+    /// command. Keeps it one app instance so window cycling still works.
+    private static func runInNewWindow(bundleID: String, command: String) {
+        let script = """
+        tell application id "\(bundleID)" to activate
+        delay 0.35
+        tell application "System Events"
+            keystroke "n" using command down
+            delay 0.4
+            keystroke "\(escaped(command))"
+            key code 36
+        end tell
+        """
+        runAppleScript(script)
     }
 
     private static func runCustom(_ command: String, template: String?) {
