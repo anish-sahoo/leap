@@ -1,17 +1,17 @@
 import AppKit
 
-/// Settings window with two tabs: a form editor and a raw-TOML editor.
-/// Switching tabs syncs the edited config both ways; the TOML tab validates
-/// and blocks the switch (and Save) on invalid input.
+/// Settings window with three tabs: a form editor, a raw-TOML editor, and a
+/// live log view. Switching between form and TOML syncs the config both ways;
+/// leaving the TOML tab is blocked while the TOML is invalid.
 @MainActor
 final class SettingsWindowController: NSWindowController {
     /// Called after a successful save so the app can re-bind hotkeys.
     var onSaved: (() -> Void)?
 
-    private enum Tab: Int { case form, toml }
+    private enum Tab: Int { case form, toml, logs }
 
     private let segmented = NSSegmentedControl(
-        labels: ["Settings", "TOML"],
+        labels: ["Settings", "TOML", "Logs"],
         trackingMode: .selectOne,
         target: nil,
         action: nil
@@ -19,6 +19,7 @@ final class SettingsWindowController: NSWindowController {
     private let container = NSView()
     private let formView = SettingsFormView()
     private let tomlView = TOMLTabView()
+    private let logsView = LogTextView()
     private let statusLabel = NSTextField(labelWithString: "")
     private var current: Tab = .form
 
@@ -51,7 +52,8 @@ final class SettingsWindowController: NSWindowController {
         statusLabel.font = .systemFont(ofSize: 11)
         statusLabel.textColor = .secondaryLabelColor
 
-        for view in [segmented, container, formView, tomlView, save, revert, statusLabel] {
+        for view in [segmented, container, formView, tomlView, logsView, save, revert,
+                     statusLabel] {
             view.translatesAutoresizingMaskIntoConstraints = false
         }
         content.addSubview(segmented)
@@ -59,11 +61,12 @@ final class SettingsWindowController: NSWindowController {
         content.addSubview(statusLabel)
         content.addSubview(revert)
         content.addSubview(save)
-        container.addSubview(formView)
-        container.addSubview(tomlView)
-        pin(formView, to: container)
-        pin(tomlView, to: container)
+        for tab in [formView, tomlView, logsView] {
+            container.addSubview(tab)
+            pin(tab, to: container)
+        }
         tomlView.isHidden = true
+        logsView.isHidden = true
 
         layoutChrome(content: content, save: save, revert: revert)
     }
@@ -106,32 +109,32 @@ final class SettingsWindowController: NSWindowController {
     }
 
     @objc private func tabChanged() {
-        let target: Tab = segmented.selectedSegment == 0 ? .form : .toml
+        let target = Tab(rawValue: segmented.selectedSegment) ?? .form
         guard target != current else { return }
 
-        if current == .form, target == .toml {
-            // Form → TOML: serialize the working config into the editor.
-            if let text = try? ConfigStore.serialize(formView.currentConfig()) {
-                tomlView.setText(text)
-            }
-            showTab(.toml)
-        } else {
-            // TOML → Form: parse first; block the switch if invalid.
+        // Leaving the TOML tab: parse it back into the (canonical) form; block
+        // the switch if the TOML is invalid.
+        if current == .toml {
             do {
-                let config = try ConfigStore.validate(tomlView.text)
-                formView.load(config)
-                showTab(.form)
+                try formView.load(ConfigStore.validate(tomlView.text))
             } catch {
-                segmented.selectedSegment = 1
-                setStatus("Fix TOML errors before switching to Settings", isError: true)
+                segmented.selectedSegment = Tab.toml.rawValue
+                setStatus("Fix TOML errors before switching tabs", isError: true)
+                return
             }
         }
+        // Entering the TOML tab: regenerate it from the form.
+        if target == .toml, let text = try? ConfigStore.serialize(formView.currentConfig()) {
+            tomlView.setText(text)
+        }
+        showTab(target)
     }
 
     private func showTab(_ tab: Tab) {
         current = tab
         formView.isHidden = tab != .form
         tomlView.isHidden = tab != .toml
+        logsView.isHidden = tab != .logs
     }
 
     // MARK: - Save

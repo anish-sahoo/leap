@@ -4,10 +4,10 @@ import AppKit
 /// slots. Holds a working copy of the config; `load` / `currentConfig` sync it
 /// with the TOML tab.
 @MainActor
-final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate,
-    NSTextFieldDelegate {
+final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate {
     private var version = 1
     private var slots: [Slot] = []
+    private var activeSheet: SlotEditorSheet?
 
     private let table = NSTableView()
     private let triggerPopup = NSPopUpButton()
@@ -100,6 +100,8 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
         table.delegate = self
         table.usesAlternatingRowBackgroundColors = true
         table.rowHeight = 22
+        table.target = self
+        table.doubleAction = #selector(editSelected)
         for column in columns {
             let col = NSTableColumn(identifier: .init(column.id))
             col.title = column.title
@@ -166,13 +168,21 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
     // MARK: - Row editing
 
     @objc private func addSlot() {
-        slots.append(Slot(
-            id: "slot\(slots.count + 1)",
-            hotkey: "",
-            label: "",
-            action: .init(type: "app")
-        ))
-        table.reloadData()
+        presentEditor(slot: nil) { [weak self] new in
+            guard let self, let new else { return }
+            slots.append(new)
+            table.reloadData()
+        }
+    }
+
+    @objc private func editSelected() {
+        let row = table.clickedRow >= 0 ? table.clickedRow : table.selectedRow
+        guard slots.indices.contains(row) else { return }
+        presentEditor(slot: slots[row]) { [weak self] edited in
+            guard let self, let edited else { return }
+            slots[row] = edited
+            table.reloadData()
+        }
     }
 
     @objc private func removeSlot() {
@@ -181,18 +191,25 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
         table.reloadData()
     }
 
+    private func presentEditor(slot: Slot?, completion: @escaping (Slot?) -> Void) {
+        guard let window else { return }
+        let sheet = SlotEditorSheet(slot: slot)
+        activeSheet = sheet
+        sheet.present(over: window) { [weak self] result in
+            self?.activeSheet = nil
+            completion(result)
+        }
+    }
+
     func numberOfRows(in _: NSTableView) -> Int {
         slots.count
     }
 
     func tableView(_: NSTableView, viewFor column: NSTableColumn?, row: Int) -> NSView? {
         guard let id = column?.identifier.rawValue, slots.indices.contains(row) else { return nil }
-        let field = NSTextField()
-        field.isBordered = false
-        field.drawsBackground = false
+        let field = NSTextField(labelWithString: value(id, row: row))
         field.font = .systemFont(ofSize: 12)
-        field.delegate = self
-        field.stringValue = value(id, row: row)
+        field.lineBreakMode = .byTruncatingTail
         return field
     }
 
@@ -200,29 +217,10 @@ final class SettingsFormView: NSView, NSTableViewDataSource, NSTableViewDelegate
         let slot = slots[row]
         switch columnID {
         case "hotkey": return slot.hotkey
-        case "name": return slot.label ?? ""
+        case "name": return slot.displayName
         case "type": return slot.action.type
-        case "target": return slot.action.target ?? ""
+        case "target": return slot.action.target ?? slot.action.body ?? ""
         default: return ""
-        }
-    }
-
-    func controlTextDidEndEditing(_ notification: Notification) {
-        guard let field = notification.object as? NSTextField else { return }
-        let row = table.row(for: field)
-        let col = table.column(for: field)
-        guard row >= 0, col >= 0 else { return }
-        apply(columns[col].id, row: row, value: field.stringValue)
-    }
-
-    private func apply(_ columnID: String, row: Int, value: String) {
-        guard slots.indices.contains(row) else { return }
-        switch columnID {
-        case "hotkey": slots[row].hotkey = value
-        case "name": slots[row].label = value.isEmpty ? nil : value
-        case "type": slots[row].action.type = value
-        case "target": slots[row].action.target = value.isEmpty ? nil : value
-        default: break
         }
     }
 }

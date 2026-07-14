@@ -14,9 +14,11 @@ All notable changes to Leap are documented here. This project follows
   Shows app icons, a Settings shortcut (`⌥,`), and is configurable via
   `[cheatsheet]` (trigger, position, vertical/horizontal orientation, delay).
 - Colored, human-readable stdout logs (ANSI, TTY-aware, honors `NO_COLOR`).
-- Settings window with two tabs: a form editor (cheat-sheet prefs + an editable
-  slots table) and a raw-TOML editor with live syntax highlighting. Switching
-  tabs syncs changes both ways.
+- Settings window with three tabs: a form editor (cheat-sheet prefs + a slots
+  table), a raw-TOML editor with live syntax highlighting, and a live Logs view.
+  Switching between form and TOML syncs changes both ways.
+- Add/edit slots via a dialog (name, hotkey, type, target + Browse…) instead of
+  editing a blank table row; double-click a row to edit it.
 - Config validation: syntax, unknown keys, invalid/duplicate hotkeys, action
   rules, and cheat-sheet enum values are reported (in the editor and on save).
 - TOML config at `~/.config/leap/config.toml`, with an in-app editor and
