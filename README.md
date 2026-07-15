@@ -22,10 +22,11 @@ lighter** as a result: a single small binary that stays out of your way.
 ## Features
 
 - **Menu-bar app** (no Dock icon).
-- **Global hotkeys** (Carbon) bound to per-slot actions:
+- **Global hotkeys** bound to per-slot actions:
   - **app** — launch, focus, or cycle its windows (Accessibility API).
   - **command** — run in a new terminal window (Ghostty / iTerm2 / Terminal / …).
-  - **script** — run an inline script or a script file.
+  - **script** — run a script file, or an inline one-liner (headless,
+    fire-and-forget; the settings dialog handles files, inline bodies via TOML).
 - **Cheat-sheet overlay** — hold the trigger key (default ⌥) to see all bindings;
   entries are clickable. Position/orientation/trigger are configurable.
 - **Settings window** — a form editor, a raw-TOML editor with syntax highlighting
