@@ -10,6 +10,13 @@ A macOS menu-bar hotkey launcher. Bind global hotkeys to apps, shell commands,
 or scripts; launch / focus / cycle app windows; and see a cheat-sheet overlay of
 your bindings. Configured with a simple TOML file or an in-app settings window.
 
+Launchers like [Raycast](https://raycast.com) and Alfred are powerful, do-it-all
+tools. Leap isn't trying to be that. It's deliberately **minimal** and aimed at
+**development workflows** — a fast, keyboard-driven way to jump between editors,
+terminals, and project scripts. No plugin store, no accounts, no background
+indexing; just a tiny native menu-bar app and a text config. It's **much
+lighter** as a result: a single small binary that stays out of your way.
+
 **Stack:** Swift 6 + AppKit, built with SwiftPM.
 
 ## Features
